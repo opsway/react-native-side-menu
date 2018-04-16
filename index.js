@@ -7,6 +7,7 @@ import {
   Dimensions,
   Animated,
   TouchableWithoutFeedback,
+  ViewPropTypes,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from './styles';
@@ -29,7 +30,8 @@ type Props = {
   onStartShouldSetResponderCapture: Function,
   isOpen: bool,
   bounceBackOnOverdraw: bool,
-  autoClosing: bool
+  autoClosing: bool,
+  overlayStyle: ViewPropTypes.style
 };
 
 type Event = {
@@ -133,11 +135,12 @@ export default class SideMenu extends React.Component {
    */
   getContentView() {
     let overlay: React.Element<void, void> = null;
+    const style = this.props.overlayStyle ? [styles.overlay, this.props.overlayStyle] : styles.overlay;
 
     if (this.isOpen) {
       overlay = (
         <TouchableWithoutFeedback onPress={() => this.openMenu(false)}>
-          <View style={styles.overlay} />
+          <View style={style} />
         </TouchableWithoutFeedback>
       );
     }
@@ -304,4 +307,5 @@ SideMenu.defaultProps = {
   isOpen: false,
   bounceBackOnOverdraw: true,
   autoClosing: true,
+  overlayStyle: null
 };
