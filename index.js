@@ -76,6 +76,7 @@ export default class SideMenu extends React.Component {
 
     this.prevLeft = 0;
     this.isOpen = !!props.isOpen;
+    this.showOverlay = !!props.isOpen;
 
     const initialMenuPositionMultiplier = props.menuPosition === 'right' ? -1 : 1;
     const openOffsetMenuPercentage = props.openMenuOffset / deviceScreen.width;
@@ -101,7 +102,6 @@ export default class SideMenu extends React.Component {
       openMenuOffset: deviceScreen.width * openOffsetMenuPercentage,
       hiddenMenuOffsetPercentage,
       hiddenMenuOffset: deviceScreen.width * hiddenMenuOffsetPercentage,
-      showOverlay: false,
       overlayOpacity,
       left,
     };
@@ -137,13 +137,7 @@ export default class SideMenu extends React.Component {
    * @return {React.Component}
    */
   getContentView() {
-    if (this.isOpen) {
-      this.setState({
-        showOverlay: true,
-      });
-    }
-
-    const { width, height, showOverlay } = this.state;
+    const { width, height } = this.state;
     const ref = sideMenu => (this.sideMenu = sideMenu);
     const style = [
       styles.frontView,
@@ -158,7 +152,7 @@ export default class SideMenu extends React.Component {
     return (
       <Animated.View style={style} ref={ref} {...this.responder.panHandlers}>
         {this.props.children}
-        {showOverlay && (
+        {this.showOverlay && (
           <TouchableWithoutFeedback onPress={() => this.openMenu(false)}>
             <Animated.View style={overlayStyle} />
           </TouchableWithoutFeedback>
@@ -227,6 +221,9 @@ export default class SideMenu extends React.Component {
     const { hiddenMenuOffset, openMenuOffset } = this.state;
     this.moveLeft(isOpen ? openMenuOffset : hiddenMenuOffset);
     this.isOpen = isOpen;
+    if (isOpen) {
+      this.showOverlay = true;
+    }
 
     Animated.spring(
       this.state.overlayOpacity,
@@ -235,9 +232,7 @@ export default class SideMenu extends React.Component {
         friction: 8,
       },
     ).start(() => {
-      if (!isOpen) {
-        this.setState({ showOverlay: isOpen });
-      }
+      this.showOverlay = isOpen;
     });
 
     this.forceUpdate();
