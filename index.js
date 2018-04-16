@@ -31,7 +31,7 @@ type Props = {
   isOpen: bool,
   bounceBackOnOverdraw: bool,
   autoClosing: bool,
-  overlayStyle: ViewPropTypes.style
+  overlayColor: string,
 };
 
 type Event = {
@@ -51,6 +51,7 @@ type State = {
   hiddenMenuOffsetPercentage: number,
   hiddenMenuOffset: number,
   left: Animated.Value,
+  overlayOpacity: Animated.Value,
 };
 
 const deviceScreen: WindowDimensions = Dimensions.get('window');
@@ -70,6 +71,7 @@ export default class SideMenu extends React.Component {
   state: State;
   prevLeft: number;
   isOpen: boolean;
+  showOverlay: boolean;
 
   constructor(props: Props) {
     super(props);
@@ -86,7 +88,7 @@ export default class SideMenu extends React.Component {
         ? props.openMenuOffset * initialMenuPositionMultiplier
         : props.hiddenMenuOffset,
     );
-    const overlayOpacity = new Animated.Value(0);
+    const overlayOpacity = new Animated.Value(props.isOpen ? 0.7 : 0);
 
     this.onLayoutChange = this.onLayoutChange.bind(this);
     this.onStartShouldSetResponderCapture = props.onStartShouldSetResponderCapture.bind(this);
@@ -233,6 +235,7 @@ export default class SideMenu extends React.Component {
       },
     ).start(() => {
       this.showOverlay = isOpen;
+      this.forceUpdate();
     });
 
     this.forceUpdate();
