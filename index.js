@@ -8,6 +8,7 @@ import {
   Animated,
   TouchableWithoutFeedback,
   ViewPropTypes,
+  Animated,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from './styles';
@@ -85,6 +86,7 @@ export default class SideMenu extends React.Component {
         ? props.openMenuOffset * initialMenuPositionMultiplier
         : props.hiddenMenuOffset,
     );
+    const overlayOpacity = new Animated.Value(0);
 
     this.onLayoutChange = this.onLayoutChange.bind(this);
     this.onStartShouldSetResponderCapture = props.onStartShouldSetResponderCapture.bind(this);
@@ -100,6 +102,7 @@ export default class SideMenu extends React.Component {
       openMenuOffset: deviceScreen.width * openOffsetMenuPercentage,
       hiddenMenuOffsetPercentage,
       hiddenMenuOffset: deviceScreen.width * hiddenMenuOffsetPercentage,
+      overlayOpacity,
       left,
     };
 
@@ -135,12 +138,12 @@ export default class SideMenu extends React.Component {
    */
   getContentView() {
     let overlay: React.Element<void, void> = null;
-    const style = this.props.overlayStyle ? [styles.overlay, this.props.overlayStyle] : styles.overlay;
+    const styleOverlay = this.props.overlayStyle ? [styles.overlay, this.props.overlayStyle] : styles.overlay;
 
     if (this.isOpen) {
       overlay = (
         <TouchableWithoutFeedback onPress={() => this.openMenu(false)}>
-          <View style={style} />
+          <Animated.View style={[styleOverlay, {opacity: this.state.overlayOpacity}]} />
         </TouchableWithoutFeedback>
       );
     }
@@ -221,6 +224,14 @@ export default class SideMenu extends React.Component {
     const { hiddenMenuOffset, openMenuOffset } = this.state;
     this.moveLeft(isOpen ? openMenuOffset : hiddenMenuOffset);
     this.isOpen = isOpen;
+
+    Animated.spring(
+      this.state.overlayOpacity,
+      {
+        toValue: isOpen ? 1 : 0,
+        friction: 8,
+      }
+    ).start();
 
     this.forceUpdate();
     this.props.onChange(isOpen);
