@@ -101,11 +101,12 @@ export default class SideMenu extends React.Component {
       openMenuOffset: deviceScreen.width * openOffsetMenuPercentage,
       hiddenMenuOffsetPercentage,
       hiddenMenuOffset: deviceScreen.width * hiddenMenuOffsetPercentage,
+      hideOverlay: true,
       overlayOpacity,
       left,
     };
 
-    this.state.left.addListener(({value}) => this.props.onSliding(Math.abs((value - this.state.hiddenMenuOffset) / (this.state.openMenuOffset - this.state.hiddenMenuOffset))));
+    this.state.left.addListener(({ value }) => this.props.onSliding(Math.abs((value - this.state.hiddenMenuOffset) / (this.state.openMenuOffset - this.state.hiddenMenuOffset))));
   }
 
   componentWillMount(): void {
@@ -136,15 +137,23 @@ export default class SideMenu extends React.Component {
    * @return {React.Component}
    */
   getContentView() {
-    let overlay: React.Element<void, void> = null;
-    const styleOverlay = this.props.overlayStyle ? [styles.overlay, this.props.overlayStyle] : styles.overlay;
+    const overlay: React.Element<void, void> = this.state.hideOverlay && (
+      <TouchableWithoutFeedback onPress={() => this.openMenu(false)}>
+        <Animated.View
+          style={[styles.overlay, { backgroundColor: this.props.overlayColor, opacity: this.state.overlayOpacity }]} />
+      </TouchableWithoutFeedback>
+    );
 
     if (this.isOpen) {
-      overlay = (
-        <TouchableWithoutFeedback onPress={() => this.openMenu(false)}>
-          <Animated.View style={[styleOverlay, {opacity: this.state.overlayOpacity}]} />
-        </TouchableWithoutFeedback>
-      );
+      this.setState({
+        hideOverlay: false,
+      });
+    } else {
+      setTimeout(() => {
+        this.setState({
+          hideOverlay: true,
+        });
+      }, 500);
     }
 
     const { width, height } = this.state;
@@ -227,9 +236,9 @@ export default class SideMenu extends React.Component {
     Animated.spring(
       this.state.overlayOpacity,
       {
-        toValue: isOpen ? 1 : 0,
+        toValue: isOpen ? 0.6 : 0,
         friction: 8,
-      }
+      },
     ).start();
 
     this.forceUpdate();
@@ -288,6 +297,8 @@ SideMenu.propTypes = {
   isOpen: PropTypes.bool,
   bounceBackOnOverdraw: PropTypes.bool,
   autoClosing: PropTypes.bool,
+  onSliding: PropTypes.func,
+  overlayColor: PropTypes.string,
 };
 
 SideMenu.defaultProps = {
@@ -317,5 +328,5 @@ SideMenu.defaultProps = {
   isOpen: false,
   bounceBackOnOverdraw: true,
   autoClosing: true,
-  overlayStyle: null
+  overlayColor: '#000',
 };
