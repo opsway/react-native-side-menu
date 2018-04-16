@@ -101,7 +101,7 @@ export default class SideMenu extends React.Component {
       openMenuOffset: deviceScreen.width * openOffsetMenuPercentage,
       hiddenMenuOffsetPercentage,
       hiddenMenuOffset: deviceScreen.width * hiddenMenuOffsetPercentage,
-      hideOverlay: true,
+      showOverlay: false,
       overlayOpacity,
       left,
     };
@@ -137,37 +137,32 @@ export default class SideMenu extends React.Component {
    * @return {React.Component}
    */
   getContentView() {
-    const overlay: React.Element<void, void> = this.state.hideOverlay && (
-      <TouchableWithoutFeedback onPress={() => this.openMenu(false)}>
-        <Animated.View
-          style={[styles.overlay, { backgroundColor: this.props.overlayColor, opacity: this.state.overlayOpacity }]} />
-      </TouchableWithoutFeedback>
-    );
-
     if (this.isOpen) {
       this.setState({
-        hideOverlay: false,
+        showOverlay: true,
       });
-    } else {
-      setTimeout(() => {
-        this.setState({
-          hideOverlay: true,
-        });
-      }, 500);
     }
 
-    const { width, height } = this.state;
+    const { width, height, showOverlay } = this.state;
     const ref = sideMenu => (this.sideMenu = sideMenu);
     const style = [
       styles.frontView,
       { width, height },
       this.props.animationStyle(this.state.left),
     ];
+    const overlayStyle = [
+      styles.overlay,
+      { backgroundColor: this.props.overlayColor, opacity: this.state.overlayOpacity },
+    ];
 
     return (
       <Animated.View style={style} ref={ref} {...this.responder.panHandlers}>
         {this.props.children}
-        {overlay}
+        {showOverlay && (
+          <TouchableWithoutFeedback onPress={() => this.openMenu(false)}>
+            <Animated.View style={overlayStyle} />
+          </TouchableWithoutFeedback>
+        )}
       </Animated.View>
     );
   }
@@ -239,7 +234,11 @@ export default class SideMenu extends React.Component {
         toValue: isOpen ? 0.6 : 0,
         friction: 8,
       },
-    ).start();
+    ).start(() => {
+      if (!isOpen) {
+        this.setState({ showOverlay: isOpen });
+      }
+    });
 
     this.forceUpdate();
     this.props.onChange(isOpen);
