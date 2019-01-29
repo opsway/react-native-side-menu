@@ -124,6 +124,17 @@ export default class SideMenu extends React.Component {
   componentWillReceiveProps(props: Props): void {
     if (typeof props.isOpen !== 'undefined' && this.isOpen !== props.isOpen && (props.autoClosing || this.isOpen === false)) {
       this.openMenu(props.isOpen);
+    } else {
+      const {openMenuOffset, hiddenMenuOffset} = props;
+
+      // if openMenuOffset or hiddenMenuOffset has changed
+      if ((this.state.openMenuOffset !== openMenuOffset) || (this.state.hiddenMenuOffset !== hiddenMenuOffset)) {
+        this.setState({
+          ...this.state,
+          openMenuOffset, hiddenMenuOffset
+        });
+        this.moveLeft(this.isOpen ? openMenuOffset : hiddenMenuOffset)
+      }
     }
   }
 
@@ -131,6 +142,7 @@ export default class SideMenu extends React.Component {
     const { width, height } = e.nativeEvent.layout;
     const openMenuOffset = width * this.state.openOffsetMenuPercentage;
     const hiddenMenuOffset = width * this.state.hiddenMenuOffsetPercentage;
+
     this.setState({ width, height, openMenuOffset, hiddenMenuOffset });
   }
 
